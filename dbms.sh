@@ -2,13 +2,14 @@
 #!/usr/bin/bash
 shopt -s extglob # enable shell to extend global patterns
 :
-if [[ -e "/home/nouran/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database" ]]
+db_dir="$(pwd)/Database"
+if [[ -e "$db_dir" ]]
 then 	
-	cd ~/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database
+	cd "$db_dir"
 	echo DataBase is connected ....
 else 
-	mkdir /home/nouran/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database
-	cd  ~/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database
+	mkdir -p "$db_dir"
+	cd  "$db_dir"
 
 	echo DataBase is connected ...
 fi 
@@ -26,7 +27,7 @@ function mainmenu
 	read -p "PLEASE ENTER YOU CHOICE FROM THE PREVIOUS MAIN MENU : " choice
 	case $choice in
 		1) CreateDB ;;
-		2) ls /home/nouran/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database ; mainmenu;;
+		2) ls $db_dir ; mainmenu;;
 		3) ConnectDB ;;
 		4) DropDB ;;
 		5) exit ;;
@@ -53,7 +54,7 @@ function CreateDB {
 		   then 
 			   echo "!---------------- Invalid name! Must be between 3 and 50 characters long. ------------!" 
 		   else
-			   mkdir  /home/nouran/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database/$dbname 
+			   mkdir  $db_dir/$dbname 
 			   echo "DataBase is created succesfully ..."  
 		  fi 
 
@@ -65,7 +66,7 @@ function ConnectDB
 	   read -p "Enter your selected DataBase name: " dbname
 	   if [[ -e $dbname ]]
 	   then
-		   cd /home/nouran/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database/$dbname 
+		   cd $db_dir/$dbname 
 		   echo "DataBase $dbname was Connected successfully......."
 		   tablemenu
 	   else
@@ -123,6 +124,7 @@ function tablemenu
  *) echo "Wrong choice Plase selecet the correct one:  "; tablemenu;;
 esac
 }
+
 
 mainmenu
 
