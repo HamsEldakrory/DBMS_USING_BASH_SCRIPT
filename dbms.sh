@@ -333,5 +333,34 @@ function DropTable
     fi
 }
 
+function DeletefromTable {
+  read -p "Enter Table Name:  " tablename
+  if [[ -e $tablename ]]; 
+  then
+    read -p "Enter Column Name: " colname
+    fieldname=$(awk 'BEGIN{FS=":"}{if(NR==1){for(i=1;i<=NF;i++){if($i=="'$colname'")print i}}}' $tablename)
+    if [[ $fieldname == "" ]]; 
+    then
+      echo "Column $colname Not Found"
+      tablemenu
+    else
+      read -p "Enter what value you want to delete: " value
+      datavalue=$(awk 'BEGIN{FS=":"}{if ($'$fieldname'=="'$value'") print $'$fieldname'}' $tablename)
+      if [[ $datavalue == "" ]]; then
+        echo "Value $value Not Found"
+        tablemenu
+      else
+        row=$(awk 'BEGIN{FS=":"}{if ($'$fieldname'=="'$value'") print NR}' $tablename)
+        sed -i "${row}d" $tablename
+        echo "Row with value $value Deleted Successfully"
+        tablemenu
+      fi
+    fi
+  else
+    echo "Table $tablename does not exist"
+  fi
+}
+
+
 mainmenu
 
