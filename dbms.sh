@@ -119,10 +119,83 @@ function tablemenu
  5) clear ; selectmenu;;
  6) DeletefromTable;;
  7) UpdateTable;;
- 8) clear ; cd .. ; mainmenu;;  #/home/nouran/Desktop/DBMS_Project/DBMS_USING_BASH_SCRIPT/Database/$dbname  this why we use cd ..
+ 8) clear ; cd .. ; mainmenu;;  #/DBMS_USING_BASH_SCRIPT/Database/$dbname  this why we use cd ..
  9) exit;;
  *) echo "Wrong choice Plase selecet the correct one:  "; tablemenu;;
 esac
+}
+function CreateTable
+{
+read -p "Please Enter Table Name : " tablename
+if [[ -e $tablename ]]
+then 
+echo "Table is Already Exist Please Choose another name  "
+tablemenu 
+else 
+read -p "Please Enter column Numbers " columnnum
+counter=1 
+sep=":"
+rowsep="\n"
+primkey=""
+metaData="Field"$sep"Type"$sep"key"
+for ((counter;counter<$columnnum;counter++))
+do 
+read -p "Enter Name of column No:$counter : " colname 
+echo "Enter Types of $colname :"
+select var in "int" "str"
+do 
+case $var in 
+int) 
+coltype="int"
+break;;
+str)
+coltype="str"
+break;;
+*)
+echo "Wrong choice Please Enter to Make a correct choice again !"
+esac
+done
+
+if [[ $primkey == "" ]]
+then 
+echo "Do you want to make it Primary " 
+select var in "Yes" "No"
+do 
+case $var in 
+Yes)
+primkey="PK"
+metaData+=$rowsep$colname$sep$coltype$ep$primkey
+break;;
+No)
+metaData+=$rowsep$colname$sep$coltype$sep""
+break;;
+*)
+echo "wrong choice Please Enter to Make a correct choice again !"
+break;;
+esac
+done 
+else
+metaData+=$rowsep$colname$sep$coltype$sep""
+fi
+if [[ $counter == $columnnum ]]
+   maintable=$maintable$colname
+else
+   maintable=$maintable$colname
+fi
+((counter++))
+done 
+touch $tablename-metadata
+echo -e $metadata >> $tablename-metadata
+touch $tablename
+echo -e $maintable >> $tablename
+if [[ $? == 0 ]]
+then
+   echo "Table created Successfully"
+   tablemenu
+else
+   echo "Can't create Table $tablename"
+   tablemenu
+fi
 }
 
 
