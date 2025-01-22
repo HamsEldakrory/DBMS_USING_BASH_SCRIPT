@@ -1,5 +1,0 @@
-Field:Type:key
-name:str:
-age:int:
-ssd:int:PK
-salary:int:

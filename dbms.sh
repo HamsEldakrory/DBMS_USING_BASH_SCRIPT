@@ -218,7 +218,7 @@ function CreateTable
             tablemenu
         else
             # Create metadata and table files
-            echo -e "$metaData" > "$tablename-metadata"
+            echo -e "$metaData" > ."$tablename-metadata"
             echo -e "$maintable" > "$tablename"
 
             if [[ $? == 0 ]]; then
@@ -241,7 +241,7 @@ function DropTable
 	 read -p "Do you want to dropped $tablename (y/N)? " check
 			   if [[ $check =~ ^([yY][eE][sS]|[Yy]) ]]
 			   then 
-			      rm -r $tablename $tablename-metadata
+			      rm -r $tablename .$tablename-metadata
 			      echo "Table $tablename is Dropped Succesfully... "
 			     tablemenu
 			   else 
@@ -256,82 +256,96 @@ function DropTable
 
 
 }
-
-			function InsertintoTable {
+function InsertintoTable {
     read -p "Please Enter Table name: " tablename
-    if [[ -e "$tablename" ]]; then
-        if [[ ! -e "$tablename-metadata" ]]; then
-            echo "Error: Metadata file for table $tablename does not exist."
-            tablemenu
-            return
-        fi
-
-        colsNUM=$(awk 'END{print NR}' "$tablename-metadata")
-        sep=":"
-        row=""
-
-        for ((i=2; i<=colsNUM; i++)); do
-            # Extract column name, type, and key from metadata
-            colname=$(awk -F: 'NR=='$i'{print $1}' "$tablename-metadata")
-            coltype=$(awk -F: 'NR=='$i'{print $2}' "$tablename-metadata")
-            colkey=$(awk -F: 'NR=='$i'{print $3}' "$tablename-metadata")
-
-            # Prompt user for data input
-            while true; do
-                read -p "$colname ($coltype) = " Data
-
-                # Validate data based on column type
-                if [[ "$coltype" == "int" ]]; then
-                    if [[  "$Data" =~ ^[0-9]+$ ]]; then
-                        break
-                    else
-                        echo "Invalid input! Please enter a valid integer."
-                    fi
-                elif [[ "$coltype" == "str" ]]; then
-                    if [[  "$Data" =~  ^[a-zA-Z0-9_]+$ ]]; then
-                        break
-                    else
-                        echo "Invalid input! Please enter a valid string (letters, numbers, underscores, or spaces)."
-                    fi
-                fi
-            done
-
-            # Validate primary key (if applicable)
-            if [[ "$colkey" == "PK" ]]; then
-                while true; do
-                    if grep -q "^$Data$sep" "$tablename"; then
-                        echo "Error: Primary key must be unique. '$Data' already exists."
-                        read -p "$colname ($coltype) = " Data
-                    else
-                        break
-                    fi
-                done
-            fi
-
-            # Append data to the row
-            if [[ "$i" == "$colsNUM" ]]; then
-                row+="$Data"
-            else
-                row+="$Data$sep"
-            fi
-        done
-
-        # Append the row to the table file
-        echo "$row" >> "$tablename"
-
-        if [[ $? == 0 ]]; then
-            echo "Data inserted successfully."
-        else
-            echo "Error inserting data into table $tablename."
-        fi
-
-        row=""
-        tablemenu
-    else
-        echo "Table $tablename does not exist."
+    if [[ ! -e ."$tablename-metadata" ]]; then
+        echo "Error: Table $tablename does not exist."
         tablemenu
     fi
+
+    colsNUM=$(awk 'END{print NR}' ."$tablename-metadata")
+    sep=":"
+    row=""
+    rowsep="\n"
+    for (( i=2; i<=colsNUM; i++ )); do
+        colName=$(awk 'BEGIN{FS=":"}{if(NR=='$i') print $1}' ."$tablename-metadata")
+        colType=$(awk 'BEGIN{FS=":"}{if(NR=='$i') print $2}' ."$tablename-metadata")
+        colKey=$(awk 'BEGIN{FS=":"}{if(NR=='$i') print $3}' ."$tablename-metadata")
+        echo -e "$colName ($colType) = \c"
+        read data
+
+        # Validate Input
+        #integer input 
+        if [[ $colType == "int" ]]; then
+            while ! [[ $data =~ ^[0-9]+$ ]]; do
+                echo -e "Invalid DataType! Please enter a valid integer."
+                echo -e "$colName ($colType) = \c"
+                read data
+            done
+        # string input
+        elif [[ $colType == "str" ]]; then
+            while ! [[ $data =~ ^[a-zA-Z_]+$ ]]; do
+                echo -e "Invalid DataType! Please enter a valid string (letters, numbers, underscores)."
+                echo -e "$colName ($colType) = \c"
+                read data
+            done
+        
+
+	 	elif [[ "$colType" == "float" ]]; then
+	        while ! [[ "$data" =~ ^[+-]?[0-9]*\.[0-9]+$|^[+-]?[0-9]+$ ]]; do
+	            echo -e "Invalid DataType! Please enter a valid float."
+	            echo -e "$colName ($colType) = \c"
+	            read data
+	        done
+	    
+	    # Validate Input for Date
+   		 elif [[ "$colType" == "date" ]]; then
+	        while ! [[ "$data" =~ ^([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$ ]]; do
+	            echo -e "Invalid Date Format! Please enter a valid date (YYYY-MM-DD)."
+	            echo -e "$colName ($colType) = \c"
+	            read data
+	        done
+
+    
+ 		if  !date -d "$date" 2>/dev/null 
+ 		then 
+ 			echo "Invalid Dte Please enter a valid date (YYYY-MM-DD)"
+ 			read -p "$colName ($colType)"data 
+ 			
+
+ 	    fi
+    fi
+
+        if [[ "$colKey" == "PK" ]]; then
+            while true; do
+                if grep -q "^$data$sep" "$tablename"; then	
+                    echo -e "Invalid input for Primary Key: '$data' already exists."
+                else
+                    break
+                fi
+                echo -e "$colName ($colType) = \c"
+                read data
+            done
+        fi
+
+        # Set Row Data
+        if [[ $i == $colsNUM ]]; then
+            row=$row$data$rowsep
+        else
+            row=$row$data$sep
+        fi
+    done
+
+    echo -e "$row" >> "$tablename"
+    if [[ $? == 0 ]]; then
+        echo "Data inserted successfully."
+    else
+        echo "Error inserting data into table $tablename."
+    fi
+    row=""
+    tablemenu
 }
+
 
 mainmenu
 
