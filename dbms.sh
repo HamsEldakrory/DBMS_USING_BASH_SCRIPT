@@ -626,6 +626,7 @@ function SelectCol
 		if [[ $colsNUM -gt 0 && $colsNUM -le $allcolnum ]]; 
 		then
             cut -d':' -f"$colsNUM" "$tablename"
+            selectmenu
         else
         	echo "Invalid column number "
         	selectmenu
