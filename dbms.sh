@@ -300,7 +300,7 @@ function InsertintoTable {
         # string input
         elif [[ $colType == "str" ]]; then
             while ! [[ $data =~ ^[a-zA-Z_]+$ ]]; do
-                echo -e "Invalid DataType! Please enter a valid string (letters, numbers, underscores)."
+                echo -e "Invalid DataType! Please enter a valid string (letters,underscores)."
                 echo -e "$colName ($colType) = \c"
                 read data
             done
@@ -333,20 +333,19 @@ function InsertintoTable {
 
         sep=":"  # Make sure this matches your field separator
 
-	
-        # Primary Key Uniqueness Check
+	 # Primary Key Uniqueness Check
         if [[ "$colKey" == "PK" ]]; then
             while true; do
-                if grep -q -F -w "$data" <(cut -d: -f$i "$tablename"); then
-                    echo "Invalid input for Primary Key: '$data' already exists."
-                else
+                if awk -F: -v pk="$data" -v col="$((i - 1))" '
+                    NR > 1 && $col == pk {exit 1}' "$tablename"; then
                     break
+                else
+                    echo "Invalid input for Primary Key: '$data' already exists."
                 fi
-                echo -e "$colName ($colType) = \c"
+                echo -n "$colName ($colType) = "
                 read data
             done
         fi
-
         # Set Row Data
         if [[ $i == $colsNUM ]]; then
             row=$row$data$rowsep
@@ -665,7 +664,7 @@ function AllCond {
     fi
 }
 function SpecCond {
-    echo "Select All Columns where field (op) value"
+    echo "Select spectific Columns where field (op) value"
     read -p "Enter table name: " tablename
     if [[ -e $tablename ]]
     then
