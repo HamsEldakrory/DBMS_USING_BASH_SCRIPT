@@ -160,9 +160,19 @@ function CreateTable
 			for ((counter;counter<=columnnum;counter++))
 			do 
 			read -p "Enter Name of column No:$counter : " colname 
-			echo "Enter Types of $colname :"
-			select var in "int" "str" "float" "date"
-			do 
+			if [[ ! $colname =~ ^[a-zA-Z0-9_]+$ ]]
+			 then
+			 	echo "!------ Invalid name! Only letters, numbers, and underscores are allowed. ----!"
+			 	tablemenu
+			 elif [[ $colname =~ ^[0-9] ]];
+			  then
+			 	echo "!-------- Table   Name Cannot Start With  NUmbers ---------------!"  
+			 	tablemenu
+			 else
+
+			  echo "Enter Types of $colname :"
+			  select var in "int" "str" "float" "date"
+			  do 
 				case $var in 
 					int) 
 						coltype="int"
@@ -181,9 +191,10 @@ function CreateTable
 					echo "Wrong choice Please Enter to Make a correct choice again !"
 				esac
 			done
+            
 
-		if [[ "$primkey" == "" ]]
-		then 
+		  if [[ "$primkey" == "" ]]
+		  then 
 			echo "Do you want to make it Primary " 
 			select var in "Yes" "No"
 				do 
@@ -202,18 +213,21 @@ function CreateTable
 					break;;
 				esac
 			done 
+
 			else
 				metaData+=$rowsep$colname$sep$coltype$sep""
+		  fi
 		fi
-		if [[ $counter == $columnnum ]]
-		then
+		  if [[ $counter == $columnnum ]]
+		  then
 		   maintable=$maintable$colname
-		else
+		  else
 
 		   maintable=$maintable$colname$sep
-		fi
-		done 
- if [[ "$hasPK" == false ]]; then
+		  fi
+		 done 
+
+         if [[ "$hasPK" == false ]]; then
             echo "Error: At least one column must be a primary key."
             tablemenu
         else
@@ -231,6 +245,7 @@ function CreateTable
         fi
     fi
 	fi
+
 		  tablemenu
 }
 function DropTable
@@ -374,8 +389,154 @@ function DeletefromTable {
   fi
 }
 
+function selectmenu
+{
+	echo "        <<<<<<<<<<<<<<<<<<<<< SELECT MENU >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" 
+	echo "            (-------------1- Select all column from table ---------------) "
+	echo "            (-------------2- Select spectific column from table ---------) " 
+	echo "            (-------------3- Select from table under condition-----------) "
+	echo "            (--------------------4-Back to table menu--------------------) "
+	echo "            (--------------------5-Back to main menu---------------------) "
+	echo "            (-------------------------6-Exit-----------------------------) "
+	read -p  "Enter your choice from previous select menu: " choice
+	case $choice in
+     1)SelectAll;;
+     2)SelectCol;;
+     3)clear; selectcondmenu;;
+     4)clear; tablemenu;; 
+     5)clear; mainmenu;;
+     6)exit;;
+     *)echo "Wrong choice please select correct one: "; selectmenu;;
+    esac 
+}
+function SelectAll
+{
+	read -p "Enter Table Name : " tablename
+	if [[ -e $tablename ]]
+	then
+		echo "All Columns of table $tablename : "
+		cat  "$tablename"
+		selectmenu
 
-
+	else
+		echo "Table $tablename Not Exist"
+		selectmenu
+	fi 
+			
+}
+function SelectCol
+{
+	read -p "Enter Table Name: " tablename
+	if [[ -e $tablename ]]
+	then
+		cat "$tablename"
+		read -p "Enter column number you Want to select: " colsNUM
+		allcolnum=$(head -n 1 "$tablename" | awk 'BEGIN{FS=":"} {print NF}')
+		if [[ $colsNUM -gt 0 && $colsNUM -le $allcolnum ]]; 
+		then
+            cut -d':' -f"$colsNUM" "$tablename"
+        else
+        	echo "Invalid column number "
+        	selectmenu
+        fi
+	else
+	  echo "Table $tablename Not Exist"
+	  selectmenu
+	fi	
+}
+function selectcondmenu
+{
+	echo "        <<<<<<<<<<<<<<<<<<<<Select Under Condition Menu>>>>>>>>>>>>>>>>>>>>>>>> "
+	echo "           (-----------1-Select all coulmns under condition--------------) "
+	echo "           (------------2-Select spectific column under condition--------) "
+	echo "           (--------------------3-Back to Select Menu--------------------) "
+	echo "           (-------------------4-Back to Table Menue---------------------) "
+	echo "           (-------------------5- Back to Main Menu----------------------) "
+	echo "           (--------------------------6-Exit-----------------------------) "
+	read -p "Enter your choice from previous select under condition menu: " choice
+	case $choice in 
+	 1)AllCond;;
+	 2)SpecCond;; 
+	 3)clear; selectmenu;;
+	 4)clear; tablemenu;;
+	 5)clear; mainmenu;;
+	 6)exit;;
+     *) echo "Wrong choice please select correct one:  "; selectcondmenu;; 
+	 esac	
+}
+function AllCond {
+    echo "Select All Columns where field (op) value"
+    read -p "Enter table name: " tablename
+    if [[ -e $tablename ]]
+    then
+        read -p "Enter field where you want to select: " fieldname
+        field=$(awk 'BEGIN{FS=":"}{if(NR==1){for(i=1;i<=NF;i++){if($i=="'$fieldname'") print i}}}' $tablename)
+        if [[ -z "$field" ]]
+        then 
+            echo "Field $fieldname Not Found"
+            selectcondmenu
+        else
+            read -p "Enter operator (==,!=,<=,>=,<,>): " operator
+            if [[ $operator == "<" ]] || [[ $operator == ">" ]] || [[ $operator == "<=" ]] || [[ $operator == ">=" ]] || [[ $operator == "==" ]] || [[ $operator == "!=" ]]
+            then
+                read -p "Enter value where you want to select: " value
+                header=$(head -n 1 "$tablename" | column -t -s ':')
+                echo "$header"
+                result=$(awk 'BEGIN{FS=":"} NR>1 {if ($'$field' '$operator' "'$value'") print $0}' $tablename | column -t -s ':')
+                if [[ -z "$result" ]] 
+                then
+                    echo "Value $value Not Found"
+                    selectcondmenu
+                else
+                    echo "$result"
+                    selectcondmenu
+                fi
+            else
+                echo "Invalid operator"
+                selectcondmenu
+            fi
+        fi
+    else
+        echo "Table $tablename Does Not Exist"
+        selectcondmenu
+    fi
+}
+function SpecCond {
+    echo "Select All Columns where field (op) value"
+    read -p "Enter table name: " tablename
+    if [[ -e $tablename ]]
+    then
+        read -p "Enter field where you want to select: " fieldname
+        field=$(awk 'BEGIN{FS=":"}{if(NR==1){for(i=1;i<=NF;i++){if($i=="'$fieldname'") print i}}}' $tablename)
+        if [[ -z "$field" ]]
+        then 
+            echo "Field $fieldname Not Found"
+            selectcondmenu
+        else
+            read -p "Enter operator (==,!=,<=,>=,<,>): " operator
+            if [[ $operator == "<" ]] || [[ $operator == ">" ]] || [[ $operator == "<=" ]] || [[ $operator == ">=" ]] || [[ $operator == "==" ]] || [[ $operator == "!=" ]]
+            then
+                read -p "Enter value where you want to select: " value
+                result=$(awk 'BEGIN{FS=":"} NR>1 {if ($'$field' '$operator' "'$value'") print $'$field'}' $tablename | column -t -s ':')
+                if [[ -z "$result" ]] 
+                then
+                    echo "Value $value Not Found"
+                    selectcondmenu
+                else
+                	echo "$fieldname"
+                    echo "$result"
+                    selectcondmenu
+                fi
+            else
+                echo "Invalid operator"
+                selectcondmenu
+            fi
+        fi
+    else
+        echo "Table $tablename Does Not Exist"
+        selectcondmenu
+    fi
+}
 
 mainmenu
 

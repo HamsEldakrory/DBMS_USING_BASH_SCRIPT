@@ -1,4 +1,0 @@
-Field:Type:key
-name:str:
-age:int:
-id:int:PK
