@@ -1,5 +1,0 @@
-Field:Type:key
-name:str:
-age:int:
-salary:float:
-birthdaydate:date:PK
