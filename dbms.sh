@@ -2,6 +2,32 @@
 #!/usr/bin/bash
 shopt -s extglob # enable shell to extend global patterns
 :
+
+# Regular Colors
+Black='\033[0;30m'        # Black
+Red='\033[0;31m'          # Red
+Green='\033[0;32m'        # Green
+Yellow='\033[0;33m'       # Yellow
+Blue='\033[0;34m'         # Blue
+Purple='\033[0;35m'       # Purple
+Cyan='\033[0;36m'         # Cyan
+White='\033[0;37m'        # White
+
+# Bold
+BBlack='\033[1;30m'       # Black
+BRed='\033[1;31m'         # Red
+BGreen='\033[1;32m'       # Green
+BYellow='\033[1;33m'      # Yellow
+BBlue='\033[1;34m'        # Blue
+BPurple='\033[1;35m'      # Purple
+BCyan='\033[1;36m'        # Cyan
+BWhite='\033[1;37m'       # White
+
+
+
+# Clear the color after that
+clear='\033[0m'
+
 db_dir="$(pwd)/Database"
 if [[ -e "$db_dir" ]]
 then 	
@@ -13,49 +39,52 @@ else
 
 	echo DataBase is connected ...
 fi 
-echo Welcome to Our DataBase Management System  made by Eng : Hams and Eng Nouran 
+echo  -e ${BRed}"Welcome to Our DataBase Management System  made by Eng : Hams and Eng Nouran "${clear}
 #create the main menu function
 
 function mainmenu
 {
-	echo  "                    <<<<<<<<<<<<<<<<<<<< MAIN MENU >>>>>>>>>>>>>>>>>>>>>"
-	echo  "                        ( ----------- 1- Create DB ------------)"
-	echo  "                        ( ----------- 2- List DBS   -----------)"
-	echo  "                        ( ----------- 3- Connect DB------------)"
-	echo  "                        ( ----------- 4- Drop DB   ------------)"
-	echo  "                        ( ----------- 5- Exit      ------------)"
-	read -p "PLEASE ENTER YOU CHOICE FROM THE PREVIOUS MAIN MENU : " choice
+	echo -e ${BBlue} "           <<<<<<<<<<<<<<<<<<<< MAIN MENU >>>>>>>>>>>>>>>>>>>>>"${clear}
+	echo -e ${Yellow}"                        ( ----------- 1- Create DB ------------)"${clear}
+	echo -e ${Yellow}"                        ( ----------- 2- List DBS   -----------)"${clear}
+	echo -e ${Yellow}"                        ( ----------- 3- Connect DB------------)"${clear}
+	echo -e ${Yellow}"                        ( ----------- 4- Drop DB   ------------)"${clear}
+	echo -e ${Yellow}"                        ( ----------- 5-    Exit   ------------)"${clear}
+	echo -e ${Blue} "PLEASE ENTER YOU CHOICE FROM THE PREVIOUS MAIN MENU : " ${clear}
+	read choice
 	case $choice in
 		1) CreateDB ;;
 		2) ls $db_dir ; mainmenu;;
 		3) ConnectDB ;;
 		4) DropDB ;;
 		5) exit ;;
-		*) echo "wrong choice Plase selecet the correct one " ; mainmenu;;
+		*) echo -e ${Red}"wrong choice Plase selecet the correct one " ${clear}; mainmenu;; 
 	esac
 }
 
 # function to create the database
 function CreateDB {
-	 read -p "Enter DB Name : " dbname 
+	 # read -p "Enter DB Name : " dbname 
+	 echo -e ${BCyan} "Enter DB Name" ${clear}
+	 read dbname
 	 if [[ -e $dbname ]]
 		 then 
-		   echo "DataBase is already exist "
+		   echo -e ${Red}"DataBase is already exist "${clear}
 		   mainmenu 
 	 else 
 		  if [[ ! $dbname  =~ ^[a-zA-Z0-9_]+$ ]]
 		  then
-		  	echo "!-------------- Invalid name! Only letters, numbers, and underscores are allowed. -------!"
+		  	echo -e ${Red}"!-------------- Invalid name! Only letters, numbers, and underscores are allowed. -------!"${clear}
 
 		   elif [[ $dbname =~ ^[0-9] ]]
 		   then 
-			   echo "!----------------- DataBase Name Cannot Start With  NUmbers --------------------------!"  
+			   echo -e ${Red}"!----------------- DataBase Name Cannot Start With  NUmbers --------------------------!" ${clear}
 		   elif [[ ${#dbname} -lt 3 || ${#dbname} -gt 50 ]]   # # used to find the lenght of the word 
 		   then 
-			   echo "!---------------- Invalid name! Must be between 3 and 50 characters long. ------------!" 
+			   echo -e ${Red}"!---------------- Invalid name! Must be between 3 and 50 characters long. ------------!" ${clear}
 		   else
 			   mkdir  $db_dir/$dbname 
-			   echo "DataBase is created succesfully ..."  
+			   echo -e ${Green}"DataBase is created succesfully ..."  
 		  fi 
 
 		 mainmenu 
