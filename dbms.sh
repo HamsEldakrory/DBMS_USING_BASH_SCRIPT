@@ -331,10 +331,14 @@ function InsertintoTable {
  	    fi
     fi
 
+        sep=":"  # Make sure this matches your field separator
+
+	
+        # Primary Key Uniqueness Check
         if [[ "$colKey" == "PK" ]]; then
             while true; do
-                if grep -q "^$data$sep" "$tablename"; then	
-                    echo -e "Invalid input for Primary Key: '$data' already exists."
+                if grep -q -F -w "$data" <(cut -d: -f$i "$tablename"); then
+                    echo "Invalid input for Primary Key: '$data' already exists."
                 else
                     break
                 fi
@@ -388,6 +392,165 @@ function DeletefromTable {
     echo "Table $tablename does not exist"
   fi
 }
+function UpdateTable {
+    read -p "Enter Table Name  : " tablename
+
+    # Validation on table existence
+    if [[ ! -e $tablename ]]; then
+        echo "Error: Table $tablename doesn't exist !!"
+        tablemenu
+        return
+    fi
+
+    # Validation on table being empty
+    if [[ ! -s $tablename ]]; then
+        echo "Error: Table $tablename is empty."
+        tablemenu
+        return
+    fi
+
+    # Check if metadata file exists
+    if [[ ! -e ."$tablename-metadata" ]]; then
+        echo "Error: Metadata file for table '$tablename' does not exist."
+        tablemenu
+        return
+    fi
+
+    read -p "Enter Condition Column Name : " field
+
+    # Validation on condition column name
+    if [[ -z $field ]]; then
+        echo "Error: Condition column name cannot be empty."
+        tablemenu
+        return
+    fi
+
+    # Find the column index for the condition column
+    fid=$(awk -F: 'NR==1 {for (i=1; i<=NF; i++) if ($i=="'$field'") print i }' "$tablename")
+
+    # Validation on condition column existence
+    if [[ -z $fid ]]; then
+        echo "Error: Column $field does not exist in table $tablename."
+        tablemenu
+        return
+    fi
+
+    read -p "Enter Value of Condition Column $field: " val
+
+    # Validation on condition value
+    if [[ -z $val ]]; then
+        echo "Error: Condition value cannot be empty."
+        tablemenu
+        return
+    fi
+
+    # Check if the value exists in the condition column
+    res=$(awk -F: -v col="$fid" -v value="$val" '$col == value {print $col}' "$tablename" 2>>./.error.log)
+
+    if [[ -z $res ]]; then
+        echo "Error: Value '$val' not found in column '$field'."
+        tablemenu
+        return
+    fi
+
+    read -p "Enter Field Name to Update: " setField
+
+    # Validation on update field name
+    if [[ -z $setField ]]; then
+        echo "Error: Field name to update cannot be empty."
+        tablemenu
+        return
+    fi
+
+    # Find the column index for the update field
+    setFid=$(awk -F: 'NR==1 {for (i=1; i<=NF; i++) if ($i=="'$setField'") print i}' "$tablename")
+
+    if [[ -z $setFid ]]; then
+        echo "Error: Column '$setField' does not exist in table '$tablename'."
+        tablemenu
+        return
+    fi
+
+    # Debug: Print column index
+    echo "Column Index for Update Field: $setFid"
+
+    # Get the column type for validation
+    coltype=$(awk -F: -v field="$setField" '$1 == field {print $2}' ."$tablename-metadata")
+
+    # Debug: Print column type
+    echo "Column Type for Update Field: $coltype"
+
+    if [[ -z $coltype ]]; then
+        echo "Error: Column type for '$setField' not defined in table."
+        tablemenu
+        return
+    fi
+
+    read -p "Enter the New Value : " newval
+
+    # Validation on new value
+    if [[ -z $newval ]]; then
+        echo "Error: New value cannot be empty."
+        tablemenu
+        return
+    fi
+
+    # Validate new value based on column type
+    case "$coltype" in
+        int)
+            if ! [[ "$newval" =~ ^[0-9]+$ ]]; then
+                echo "Error: The value for $setField column must be INTEGER."
+                tablemenu
+                return
+            fi
+            ;;
+        str)
+            if ! [[ "$newval" =~ ^[a-zA-Z_]+$ ]]; then
+                echo "Error: The value for $setField column must be STRING."
+                tablemenu
+                return
+            fi
+            ;;
+        float)
+            if ! [[ "$newval" =~ ^[0-9]+\.[0-9]+$ ]]; then
+                echo "Error: The value for $setField column must be FLOAT."
+                tablemenu
+                return
+            fi
+            ;;
+        date)
+            if ! [[ "$newval" =~ ^([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$ ]]; then
+                echo "Error: The value for $setField column must be DATE (YYYY-MM-DD)."
+                tablemenu
+                return
+            fi
+            ;;
+        *)
+            echo "Error: Unknown column type '$coltype'."
+            tablemenu
+            return
+            ;;
+    esac
+
+    # Get row number of the condition value
+    rowNumber=$(awk -F: -v col="$fid" -v value="$val" '$col == value {print NR}' "$tablename" 2>>./.error.log)
+
+    # Update the specific column in the target row
+    awk -F: -v row="$rowNumber" -v col="$setFid" -v newValue="$newval" 'BEGIN {OFS=FS} {
+        if (NR == row) {
+            $col = newValue  # Update the specific column
+        }
+        print $0  # Print the updated row
+    }' "$tablename" > temp_table && mv temp_table "$tablename"
+
+    if [[ $? -eq 0 ]]; then
+        echo "Row updated successfully."
+    else
+        echo "Error: Failed to update row(s) in table '$tablename'."
+    fi
+    tablemenu
+}
+
 
 function selectmenu
 {
