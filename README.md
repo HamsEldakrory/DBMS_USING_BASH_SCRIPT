@@ -74,7 +74,11 @@ Once connected to a specific database, the user can access the following options
 - **Input Validation**: Validates user input to prevent errors and maintain data integrity.
 
 ---
+## 👩‍💻 Author
+- **Eng: Hams & Eng: Nouran**
+- GitHub: [NouranElshazly](https://github.com/NouranElshazly) | [HamsEldakrory](https://github.com/HamsEldakrory)
 
+---
 ## 🖥️ Usage
 
 ### Running the Script
@@ -86,9 +90,5 @@ Once connected to a specific database, the user can access the following options
 3. Run the script: 
  ```bash
    ./dbms.sh
----
 
-## 👩‍💻 Author
-- **Eng: Hams & Eng: Nouran**
-- GitHub: [NouranElshazly](https://github.com/NouranElshazly) | [HamsEldakrory](https://github.com/HamsEldakrory)
 
