@@ -82,12 +82,66 @@ Once connected to a specific database, the user can access the following options
 2. Make the script executable:
    ```bash
    chmod +x dbms.sh
+<<<<<<< HEAD
 3. Run the script: 
  ```bash
    chmod +x dbms.sh
 ---
 
 ##👩‍💻 Author
+=======
+Run the script:
+
+bash
+Copy
+./dbms.sh
+Navigating the Menus
+Use the Main Menu to manage databases.
+
+Connect to a database to access the Database Menu for table operations.
+
+📋 Example Workflow
+1. Create a Database
+Select 📂 Create Database from the Main Menu.
+
+Enter a name for the database (e.g., employee).
+
+2. Connect to the Database
+Select 🔗 Connect to Database from the Main Menu.
+
+Choose the employee database.
+
+3. Create a Table
+Select 📊 Create Table from the Database Menu.
+
+Enter table details:
+
+Table name: python_track
+
+Columns: id:int:PK, name:str, age:int, date_hiring:date
+
+4. Insert Data
+Select ➕ Insert into Table from the Database Menu.
+
+Enter values for each column:
+
+id=1, name="John", age=25, date_hiring="2023-01-01"
+
+5. Select Data
+Select 🔍 Select From Table from the Database Menu.
+
+View the inserted rows in a formatted table.
+
+🛠️ Hints
+Database Storage: Each database is stored as a directory, and each table is stored as a file within the database directory.
+
+Metadata: Table metadata (e.g., column names, data types, primary key) is stored in a separate metadata file.
+
+Data Validation: The system enforces data types and primary key constraints during insertion and updates.
+
+
+👩‍💻 Author
+>>>>>>> f9c3dda34c02ea28d911552c0878886d7f0450e8
 Eng: Hams & Eng: Nouran
 
 GitHub: https://github.com/NouranElshazly 
