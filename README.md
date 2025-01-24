@@ -88,7 +88,7 @@ Once connected to a specific database, the user can access the following options
    chmod u+x dbms.sh
    
 3. Run the script: 
- ```bash
-   ./dbms.sh
+   ```bash
+    ./dbms.sh
 
 
