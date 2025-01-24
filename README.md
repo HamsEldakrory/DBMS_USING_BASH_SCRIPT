@@ -81,16 +81,14 @@ Once connected to a specific database, the user can access the following options
 1. Clone the repository or download the script.
 2. Make the script executable:
    ```bash
-   chmod +x dbms.sh
+   chmod u+x dbms.sh
+   
 3. Run the script: 
  ```bash
-   chmod +x dbms.sh
+   ./dbms.sh
 ---
 
-##👩‍💻 Author
-Eng: Hams & Eng: Nouran
-
-GitHub: https://github.com/NouranElshazly 
-	   https://github.com/HamsEldakrory
-
+## 👩‍💻 Author
+- **Eng: Hams & Eng: Nouran**
+- GitHub: [NouranElshazly](https://github.com/NouranElshazly) | [HamsEldakrory](https://github.com/HamsEldakrory)
 
