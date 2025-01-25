@@ -100,7 +100,7 @@ function mainmenu
 	read choice
 	case $choice in
 		1) CreateDB ;;
-		2) ls $db_dir ; mainmenu ${clear};;
+		2) ls "$db_dir" ; mainmenu ${clear};;
 		3) ConnectDB ;;
 		4) DropDB ;;
 		5) exit ;;
@@ -111,18 +111,18 @@ function mainmenu
 # function to create the database
 function CreateDB {
 	 # read -p "Enter DB Name : " dbname 
-	 echo -e ${ICyan} "Please Enter DB Name: \c " ${clear}
+	 echo -e ${ICyan}"Please Enter DB Name: \c " ${clear}
 	 read dbname
-	 if [[ -e $dbname ]]
+	 if [[ -e "$dbname" ]]
 		 then 
 		   echo -e ${Red}"DataBase is already exist "${clear}
 		   mainmenu 
 	 else 
-		 if [[ ! $dbname =~ ^([a-zA-Z0-9]*_?[a-zA-Z0-9]+|[a-zA-Z0-9]+_?[a-zA-Z0-9]*)$ ]]
+		 if [[ ! "$dbname" =~ ^([a-zA-Z0-9]*_?[a-zA-Z0-9]+|[a-zA-Z0-9]+_?[a-zA-Z0-9]*)$ ]]
 		  then
 		  	echo -e ${Red}"!-------------- Invalid name! Only letters, numbers, and underscores are allowed but underscores cannot be alone-------!"${clear}
 
-		   elif [[ $dbname =~ ^[0-9] ]]
+		   elif [[ "$dbname" =~ ^[0-9] ]]
 		   then 
 			   echo -e ${Red}"!----------------- DataBase Name Cannot Start With  NUmbers --------------------------!" ${clear}
 		   elif [[ ${#dbname} -lt 3 || ${#dbname} -gt 50 ]]   # # used to find the lenght of the word 
@@ -141,7 +141,7 @@ function ConnectDB
 	   # read -p "Enter your selected DataBase name: " dbname
 	   echo -e ${ICyan}"Enter Your Selected Database Name  :\c " ${clear}
 	   read dbname
-	   if [[ -e $dbname ]]
+	   if [[ -e "$dbname" ]]
 	   then
 		   cd $db_dir/$dbname 
 		   echo -e ${IGreen}"DataBase $dbname was Connected successfully......." ${clear}
@@ -380,7 +380,7 @@ function InsertintoTable {
             done
         # string input
         elif [[ $colType == "str" ]]; then
-           while ! [[ $data =~ ^([a-zA-Z_]*[a-zA-Z][a-zA-Z_]*)$ ]]; do
+           while ! [[ $data =~ ^([a-zA-Z\s]+|[a-zA-Z0-9\s,.-]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$ ]]; do
                 echo -e "Invalid DataType! Please enter a valid string (letters and underscores allowed, but underscores cannot be alone)."
                 echo -e "$colName ($colType) = \c"
                 read data
@@ -465,7 +465,17 @@ function DeletefromTable {
       else
         row=$(awk 'BEGIN{FS=":"}{if ($'$fieldname'=="'$value'") print NR}' $tablename)
         sed -i "${row}d" $tablename
+        sed -i '/^$/d' $tablename
         echo "Row with value $value Deleted Successfully"
+
+        echo -e  ${IBBlue}"\nALL  COLUMNS  OF TABLE $tablename :${NC}" ${clear}
+    
+	    header=$(head -1 "$tablename")
+	    echo -e ${ICyan}"$header${NC}"
+	    
+	    tail -2 "$tablename" | while IFS= read -r line; do
+	    echo -e ${IGreen} "$line${NC}" ${clear}
+	    done
         tablemenu
       fi
     fi
@@ -520,7 +530,7 @@ function UpdateTable {
 
     # Validation on condition value
     if [[ -z $val ]]; then
-        echo "Error: Condition value cannot be empty."
+        echo -e ${IRed}"Error: Condition value cannot be empty." ${clear}
         tablemenu
         return
     fi
@@ -538,7 +548,7 @@ function UpdateTable {
 
     # Validation on update field name
     if [[ -z $setField ]]; then
-        echo "Error: Field name to update cannot be empty."
+        echo -e ${IRed}"Error: Field name to update cannot be empty." ${clear}
         tablemenu
         return
     fi
@@ -547,7 +557,7 @@ function UpdateTable {
     setFid=$(awk -F: 'NR==1 {for (i=1; i<=NF; i++) if ($i=="'$setField'") print i}' "$tablename")
 
     if [[ -z $setFid ]]; then
-        echo "Error: Column '$setField' does not exist in table '$tablename'."
+        echo -e ${IRed}"Error: Column '$setField' does not exist in table '$tablename'." ${clear}
         tablemenu
         return
     fi
@@ -587,7 +597,7 @@ function UpdateTable {
             fi
             ;;
         str)
-            if ! [[ "$newval" =~ ^([a-zA-Z_]*[a-zA-Z][a-zA-Z_]*)$  ]]; then
+            if ! [[ "$newval" =~  ^([a-zA-Z\s]+|[a-zA-Z0-9\s,.-]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$  ]]; then
                 echo -e ${IRed}"Error: The value for $setField column must be STRING." ${clear}
                 tablemenu
                 return
@@ -643,7 +653,15 @@ function UpdateTable {
     }' "$tablename" > temp_table && mv temp_table "$tablename"
 
     if [[ $? -eq 0 ]]; then
-        echo "Row updated successfully."
+        echo "Row updated successfully." 
+        echo -e  ${IBBlue}"\nALL  COLUMNS  OF TABLE $tablename :${NC}" ${clear}
+    
+	    header=$(head -1 "$tablename")
+	    echo -e ${ICyan}"$header${NC}"
+	    
+	    tail -2 "$tablename" | while IFS= read -r line; do
+	    echo -e ${IGreen} "$line${NC}" ${clear}
+	    done
     else
         echo "Error: Failed to update row(s) in table '$tablename'."
     fi
@@ -673,11 +691,17 @@ function selectmenu
 }
 function SelectAll
 {
-	read -p "Enter Table Name : " tablename
-	if [[ -e $tablename ]]
-	then
-		echo "All Columns of table $tablename : "
-		cat  "$tablename"
+	 read -p "Enter Table Name : " tablename
+  if [[ -e $tablename ]]; then
+    echo -e  ${IBBlue}"\nALL  COLUMNS  OF TABLE $tablename :${NC}" ${clear}
+    
+    header=$(head -1 "$tablename")
+    echo -e ${ICyan}"$header${NC}"
+    
+    tail -2 "$tablename" | while IFS= read -r line; do
+    echo -e ${IGreen} "$line${NC}" ${clear}
+    done
+    
 		selectmenu
 
 	else

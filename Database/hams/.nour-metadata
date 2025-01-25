@@ -1,0 +1,4 @@
+Field:Type:key
+name:str:
+id:int:
+ssd:int:PK
