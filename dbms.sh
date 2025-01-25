@@ -118,9 +118,9 @@ function CreateDB {
 		   echo -e ${Red}"DataBase is already exist "${clear}
 		   mainmenu 
 	 else 
-		  if [[ ! $dbname  =~ ^[a-zA-Z0-9_]+$ ]]
+		 if [[ ! $dbname =~ ^([a-zA-Z0-9]*_?[a-zA-Z0-9]+|[a-zA-Z0-9]+_?[a-zA-Z0-9]*)$ ]]
 		  then
-		  	echo -e ${Red}"!-------------- Invalid name! Only letters, numbers, and underscores are allowed. -------!"${clear}
+		  	echo -e ${Red}"!-------------- Invalid name! Only letters, numbers, and underscores are allowed but underscores cannot be alone-------!"${clear}
 
 		   elif [[ $dbname =~ ^[0-9] ]]
 		   then 
@@ -211,9 +211,9 @@ function CreateTable
 			echo -e ${IRed}"Table is Already Exist Please Choose another name  " ${clear}
 			tablemenu 
 		else 
-			  if [[ ! $tablename  =~ ^[a-zA-Z0-9_]+$ ]]
+			  if [[ ! $tablename  =~ ^([a-zA-Z0-9]*_?[a-zA-Z0-9]+|[a-zA-Z0-9]+_?[a-zA-Z0-9]*)$ ]]
 		  then
-		  	echo -e ${IRed} "!-------------- Invalid name! Only letters, numbers, and underscores are allowed. -------!" ${clear}
+		  	echo -e ${IRed} "!-------------- Invalid name! Only letters, numbers, and underscores are allowed but underscores cannot be alone -------!" ${clear}
 
 		   elif [[ $tablename =~ ^[0-9] ]]
 		   then 
@@ -239,9 +239,9 @@ function CreateTable
 			for ((counter;counter<=columnnum;counter++))
 			do 
 			read -p "Enter Name of column No:$counter : " colname 
-			if [[ ! $colname =~ ^[a-zA-Z0-9_]+$ ]]
+			if [[ ! $colname =~ ^([a-zA-Z0-9]*_?[a-zA-Z0-9]+|[a-zA-Z0-9]+_?[a-zA-Z0-9]*)$ ]]
 			 then
-			 	echo -e ${IRed} "!------ Invalid name! Only letters, numbers, and underscores are allowed. ----!"${clear}
+			 	echo -e ${IRed} "!------ Invalid name! Only letters, numbers, and underscores are allowed but underscores cannot be alone. ----!"${clear}
 			 	tablemenu
 			 elif [[ $colname =~ ^[0-9] ]];
 			  then
@@ -337,7 +337,7 @@ function DropTable
 	 read -p "Do you want to dropped $tablename (y/N)? " check
 			   if [[ $check =~ ^([yY][eE][sS]|[Yy]) ]]
 			   then 
-			      rm -r $tablename .$tablename-metadata
+			      rm -r $tablename  .$tablename-metadata
 			      echo "Table $tablename is Dropped Succesfully... "
 			     tablemenu
 			   else 
@@ -380,11 +380,12 @@ function InsertintoTable {
             done
         # string input
         elif [[ $colType == "str" ]]; then
-            while ! [[ $data =~ ^[a-zA-Z_]+$ ]]; do
-                echo -e "Invalid DataType! Please enter a valid string (letters,underscores)."
+           while ! [[ $data =~ ^([a-zA-Z_]*[a-zA-Z][a-zA-Z_]*)$ ]]; do
+                echo -e "Invalid DataType! Please enter a valid string (letters and underscores allowed, but underscores cannot be alone)."
                 echo -e "$colName ($colType) = \c"
                 read data
             done
+
         
 
 	 	elif [[ "$colType" == "float" ]]; then
@@ -586,7 +587,7 @@ function UpdateTable {
             fi
             ;;
         str)
-            if ! [[ "$newval" =~ ^[a-zA-Z_]+$ ]]; then
+            if ! [[ "$newval" =~ ^([a-zA-Z_]*[a-zA-Z][a-zA-Z_]*)$  ]]; then
                 echo -e ${IRed}"Error: The value for $setField column must be STRING." ${clear}
                 tablemenu
                 return
