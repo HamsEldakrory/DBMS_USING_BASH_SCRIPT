@@ -86,10 +86,7 @@ Once connected to a specific database, the user can access the following options
 2. Make the script executable:
    ```bash
    chmod u+x dbms.sh
-<<<<<<< HEAD
-   ./dbms.sh
 ---
-=======
    
 3. Run the script: 
    ```bash
